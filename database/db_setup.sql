@@ -104,3 +104,21 @@ CREATE TABLE system_logs (
         FOREIGN KEY (transaction_id) REFERENCES transactions(transaction_id)
         ON DELETE SET NULL ON UPDATE CASCADE
 );
+
+CREATE INDEX idx_users_type ON users(user_type);
+CREATE INDEX idx_users_name ON users(full_name);
+
+CREATE INDEX idx_raw_status ON raw_sms(parse_status);
+CREATE INDEX idx_raw_date   ON raw_sms(sms_date_ms);
+
+CREATE INDEX idx_tx_timestamp ON transactions(tx_timestamp);
+CREATE INDEX idx_tx_category  ON transactions(category_id);
+CREATE INDEX idx_tx_status    ON transactions(status);
+CREATE INDEX idx_tx_finid     ON transactions(financial_tx_id);
+
+CREATE INDEX idx_tp_tx   ON transaction_participants(transaction_id);
+CREATE INDEX idx_tp_user ON transaction_participants(user_id);
+
+CREATE INDEX idx_log_level ON system_logs(log_level);
+CREATE INDEX idx_log_stage ON system_logs(stage);
+CREATE INDEX idx_log_time  ON system_logs(created_at);
