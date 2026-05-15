@@ -1,0 +1,521 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "MoMo SMS Pipeline - Entity Schemas",
+    "description": "JSON Schemas for the main entities in the MoMo SMS processing pipeline",
+    "type": "object",
+    "entities": {
+
+        "user": {
+            "title": "User",
+            "type": "object",
+            "description": "Represents a user in the MoMo SMS system",
+            "required" : ["full_name", "user_type"],
+            "properties": {
+                "user_id": {
+                    "type": "integer",
+                    "description": "Auto-increment surrogate key."
+                },
+                "full_name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "description": "Person or business name parsed from SMS body."
+                },
+                "phone_number": {
+                    "type": ["string", "null"],
+                    "maxLength": 15,
+                    "description": "MSISDN, e.g 250788123456. NULL if unknown."
+
+                },
+                "account_number": {
+                    "type": ["string", "null"],
+                    "maxLength": 20,
+                    "description": "MoMo account numbe rwhen  present in the SMS."
+                    
+                },
+                "user_type": {
+                    "type": "string",
+                    "enum": ["customer", "agent", "business", "self"],
+                    "description": "'self' = the SMS account holder (the device owner)."
+                },
+                "is_anomymized": {
+                    "type": "boolean",
+                    "description": "Indicates if the user's personally identifiable information has been anonymized."
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Timestamp when the user record was created."
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Timestamp when the user record was last updated."
+                }
+            },
+            "examples": [
+                {
+
+                    "user_id": 1,
+                    "full_name": "John Doe",
+                    "phone_number": "250788123456",
+                    "account_number": "1234567890",
+                    "user_type": "customer",
+                    "is_anomymized": false,
+                    "created_at": "2024-01-01T12:00:00Z",
+                    "updated_at": "2024-01-01T12:00:00Z"
+                },
+
+                {
+                    "user_id": 2,
+                    "full_name": "Uwera Ruth",
+                    "phone_number": null,
+                    "account_number": null,
+                    "user_type": "agent",
+                    "is_anomymized": true,
+                    "created_at": "2024-01-02T08:30:00Z",
+                    "updated_at": "2024-01-02T08:30:00Z"
+                },
+            
+                {
+                    "user_id": 3,
+                    "full_name": "ABC Supermarket",
+                    "phone_number": "250788654321",
+                    "account_number": null,
+                    "user_type": "business",
+                    "is_anomymized": false,
+                    "created_at": "2024-01-03T15:45:00Z",
+                    "updated_at": "2024-01-03T15:45:00Z"
+                },
+
+                {
+                    "user_id": 4,
+                    "full_name": "Device Owner",
+                    "phone_number": "250788000000",
+                    "account_number": "0987654321",
+                    "user_type": "self",
+                    "is_anomymized": false,
+                    "created_at": "2024-01-04T10:20:00Z",
+                    "updated_at": "2024-01-04T10:20:00Z"
+                }
+            ]
+        },
+
+
+
+        "transaction_category": {
+            "title": "Transaction Category",
+            "type": "object",
+            "description":"Catalog of MOMO transaction types with direction(credit/debit/info).",
+            "required": ["category_name", "category_code", "direction"],
+            "properties": {
+                "category_id": {
+                    "type": "integer",
+                    "description": "Auto-increment surrogate key."
+                },
+                "category_code": {
+                    "type": "string",
+                    "maxLength": 40,
+                    "description": "Machine-readable codefor the transaction category, e.g 'INCOMING_MONEY.'"
+
+                },
+                "category_name": {
+                    "type": "string",
+                    "maxLength": 80,
+                    "description": "Descriptive name of the transaction category, e.g 'Airtime Purchase'."
+                },
+                "direction": {
+                    "type": "string",
+                    "enum": ["credit", "debit", "info"],
+                    "description": "credit = money in, debit = money out, info = non-finacial(e.g OTP)."
+                },
+                "description": { 
+                    "type": ["string", "null"]
+                },
+                "is_active": {
+                    "type": "boolean",
+                    "default": true
+                
+                }
+
+             
+            },
+            "examples": [
+                {
+                    "category_id": 1,
+                    "category_code": "INCOMING_MONEY",
+                    "category_name": "Incoming Money",
+                    "direction": "credit",
+                    "description": "Transactions where money is received.",
+                    "is_active": true
+                },
+                {
+                    "category_id": 2,
+                    "category_code": "OUTGOING_MONEY",
+                    "category_name": "Outgoing Money",
+                    "direction": "debit",
+                    "description": "Transactions where money is sent.",
+                    "is_active": true
+                },
+                {
+                    "category_id": 3,
+                    "category_code": "AIRTIME_PURCHASE",
+                    "category_name": "Airtime Purchase",
+                    "direction": "debit",
+                    "description": "Transactions for buying airtime.",
+                    "is_active": true
+                },
+                {
+                    "category_id": 4,
+                    "category_code": "OTP_MESSAGE",
+                    "category_name": "OTP Message",
+                    "direction": "info",
+                    "description": "Non-financial messages containing one-time passwords.",
+                    "is_active": true
+                }
+            ]
+        },
+
+
+        "raw_sms": {
+            "title": "RAWSms",
+            "type": "object",
+            "description": "Represents the raw SMS messages ingested into the system before processing.",
+            "required": ["sms_date_ms", "body", "body_hash"],
+            "properties": {
+                "raw_sms_id": {
+                    "type": "integer"
+                },
+                "sms_address": {
+                    "type": ["string", "null"],
+                    "maxLength": 40,
+                    "description": "Sender address from XML, typically 'M-Money'."
+                },
+                "sms_date_ms": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "SMS timestamp in milliseconds since epoch."
+
+                },
+
+                "readable_data": {
+                    "type": ["string", "null"],
+                    "maxLength": 50,
+                    "description": "Human-readable date parsed from sms_date_ms, e.g '2024-01-01T12:00:00Z'. NULL if parsing fails."
+                },
+                "body": {
+                    "type": "string",
+                    "description": "Full SMS text content."
+                },
+                "body_hash": {
+                    "type": "string",
+                    "maxLength": 64,
+                    "minLength": 64,
+                    "description": "SHA-256 hash of the SMS body for deduplication."
+                },
+
+                "parse_status": {
+                    "type": "string",
+                    "enum": ["pending", "success", "failed", "ignored"],
+                    "default": "pending",
+                    "description": "Status of the SMS parsing process."
+                },
+
+                "ingested_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Timestamp when the SMS was ingested into the system."
+                }
+
+
+            },
+            "examples": [
+                {
+                    "raw_sms_id": 1,
+                    "sms_address": "M-Money",
+                    "sms_date_ms": 1700000000000,
+                    "readable_data": "2024-01-14T02:13:20Z",
+                    "body": "You have received RWF 10,000 from John Doe. Your new balance is RWF 50,000.",
+                    "body_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                    "parse_status": "pending",
+                    "ingested_at": "2024-01-14T02:15:00Z"
+                },
+                {
+                    "raw_sms_id": 2,
+                    "sms_address": "M-Money",
+                    "sms_date_ms": 1700003600000,
+                    "readable_data": "2024-01-14T03:13:20Z",
+                    "body": "You have sent RWF 5,000 to ABC Supermarket. Your new balance is RWF 45,000.",
+                    "body_hash": "5d41402abc4b2a76b9719d911017c592",
+                    "parse_status": "pending",
+                    "ingested_at": "2024-01-14T03:15:00Z"
+                },
+                {
+                    "raw_sms_id": 101,
+                    "sms_address": "M-Money",
+                    "sms_date_ms": 1709280000000,
+                    "readable_date": "March 1, 2024 8:00:00 AM",
+                    "body": "You have received 5,000 RWF from Jean Pierre Habimana (250722987654) on your mobile money account at 08:00:00 on 01/03/2024. Your new balance is: 23,450 RWF. Financial Transaction Id: 13245678900.",
+                    "body_hash": "a3f1d2c7e5b9041678fe34acbd8921ff3cde5a72b1908fe4c236abd578012345",
+                    "parse_status": "parsed",
+                    "ingested_at": "2024-03-01T08:05:00"
+                },
+                {
+                    "raw_sms_id": 102,
+                    "sms_address": "M-Money",
+                    "sms_date_ms": 1709290800000,
+                    "readable_date": "March 1, 2024 11:00:00 AM",
+                    "body": "TxId: 76662021700. Your payment of 2,000 RWF to Nakumatt Supermarket has been completed at 11:00:00 on 01/03/2024. Fee: 20 RWF. Balance: 21,430 RWF.",
+                    "body_hash": "b8e2a1c4d6f0123789ab45ef23cd9017fe42b8c7d5901234ef6abc789d012348",
+                    "parse_status": "parsed",
+                    "ingested_at": "2024-03-01T11:05:00"
+                }
+                        
+            
+            ]
+        
+        },
+
+
+        "transaction": {
+            "title": "Transaction",
+            "type": "object",
+            "description": "Represents a financial transaction extracted from SMS messages.",
+            "required": ["category_id", "amount", "tx_timestamp"],
+            "properties": {
+                "transaction_id": {
+                    "type": "integer"
+                },
+                "external_tx_ref": {
+                    "type": ["string", "null"],
+                    "maxLength": 40,
+                    "description": "Reference ID from the SMS, e.g Momo transaction ID. NULL if not available."
+                },
+                "finacial_tx_id": {
+                    "type": ["string", "null"],
+                    "maxLength": 40,
+                    "description": "Reference ID from the SMS, e.g Momo transaction ID. NULL if not available."
+                },
+                "category_id": {
+                    "type": "integer",
+                    "description": "Foreign key to transaction_category.category_id."
+                },
+                "amount": {
+                    "type": "number",
+                    "minimum":0,
+                    "description": "Transaction amount in the smallest currency unit (e.g cents)."
+                },
+                "fee": {
+                    "type": "number",
+                    "minimum":0,
+                    "description": "Transaction fee in the smallest currency unit (e.g cents). NULL if not available."
+                },
+                "currency": {
+                    "type": "string",
+                    "maxLength": 3,
+                    "minLength": 3,
+                    "description": "ISO 4217 currency code, e.g 'RWF'."
+                },
+                "tx_timestamp": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "When the transaction was occurred according to the SMS. Parsed from SMS body, not the SMS timestamp."
+                },
+                "status": {
+                    "type": ["string", "null"],
+                    "enum": [
+                        "completed",
+                        "failed",
+                        "reversed"
+                    ],
+                    "default": "completed"
+                },
+                "token": {
+                    "type": ["string", "null"],
+                    "maxLength": 50,
+                    "description": "Vendor token,e.g EUCL Cash Power token or airtime PIN"
+                },
+                "message_note": {
+                    "type": ["string", "null"]
+                },
+                "raw_sms_id": {
+                    "type": ["integer", "null"],
+                    "description": "Foreign key to raw_sms.raw_sms_id. NULL if the transaction was created without an associated SMS (e.g manual entry)."
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                 }
+
+            },
+            "examples": [
+                {
+                    "transaction_id": 1,
+                    "external_tx_ref": "TXN001",
+                    "finacial_tx_id": "FIN001",
+                    "category_id": 1,
+                    "amount": 10000,
+                    "fee": 100,
+                    "currency": "RWF",
+                    "tx_timestamp": "2024-01-14T04:13:20Z",
+                    "status": "completed",
+                    "token": "TOKEN001",
+                    "message_note": "Transaction completed successfully.",
+                    "raw_sms_id": 3,
+                    "created_at": "2024-01-14T04:15:00Z",
+                    "updated_at": "2024-01-14T04:15:00Z"
+                },
+                {
+                    "transaction_id": 2,
+                    "external_tx_ref": "TXN002",
+                    "finacial_tx_id": "FIN002",
+                    "category_id": 2,
+                    "amount": 5000,
+                    "fee": 50,
+                    "currency": "RWF",
+                    "tx_timestamp": "2024-01-14T05:13:20Z",
+                    "status": "failed",
+                    "token": null,
+                    "message_note": "Transaction failed due to insufficient funds.",
+                    "raw_sms_id": 4,
+                    "created_at": "2024-01-14T05:15:00Z",
+                    "updated_at": "2024-01-14T05:15:00Z"
+                },
+                {
+                    "transaction_id": 3,
+                    "external_tx_ref": null,
+                    "finacial_tx_id": null,
+                    "category_id": 3,
+                    "amount": 2000,
+                    "fee": 20,
+                    "currency": "RWF",
+                    "tx_timestamp": "2024-01-14T06:13:20Z",
+                    "status": "completed",
+                    "token": "AIRTIME12345",
+                    "message_note": "Airtime purchase successful.",
+                    "raw_sms_id": 5,
+                    "created_at": "2024-01-14T06:15:00Z",
+                    "updated_at": "2024-01-14T06:15:00Z"
+                }
+            ]
+        },
+
+        "transaction_participant": {
+            "title": "Transaction Participant",
+            "type": "object",
+            "description": "Represents the participants involved in a transaction, linking users to transactions with specific roles.",
+            "required": ["transaction_id", "user_id", "role"],
+            "properties": {
+                "participant_id": {
+                    "type": "integer"
+                },
+                "transaction_id": {
+                    "type": "integer",
+                    "description": "Foreign key to transaction.transaction_id."
+                },
+                "user_id": {
+                    "type": "integer",
+                    "description": "Foreign key to user.user_id."
+                },
+                "role": {
+                    "type": "string",
+                    "enum": ["sender", "receiver", "agent", "merchant"],
+                    "description": "Role of the user in the transaction context."
+                    },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            },
+
+
+
+            "examples": [
+                {
+                   "participant_id": 1,
+                    "transaction_id": 1,
+                    "user_id": 1,
+                    "role": "receiver",
+                    "created_at": "2024-01-14T04:15:00Z"                       
+                },   
+                {
+                    "participant_id": 2,
+                    "transaction_id": 1,
+                    "user_id": 2,
+                    "role": "sender",
+                    "created_at": "2024-01-14T04:15:00Z"
+                
+                },
+                {
+                    "participant_id": 3,
+                    "transaction_id": 2,
+                    "user_id": 3,
+                    "role": "sender",
+                    "created_at": "2024-01-14T05:15:00Z"
+                },
+                {
+                    "participant_id": 4,
+                    "transaction_id": 2,
+                    "user_id": 4,
+                    "role": "receiver",
+                    "created_at": "2024-01-14T05:15:00Z"
+                }
+            ]
+            
+        },
+
+
+        "system_log": {
+            "title": "System Log",
+            "type": "object",
+            "description": "Logs for system events, errors, and processing steps.",
+            "required": ["log_level", "message", "stage"],
+            "properties": {
+                "log_id": {
+                    "type": "integer"
+                },
+                "raw_sms_id": {
+                    "type": ["integer", "null"],
+                    "description": "Foreign key to raw_sms.raw_sms_id. NULL if the log entry is not related to a specific SMS."
+                },
+                "log_level": {
+                    "type": "string",
+                    "enum": ["DEBUG", "INFO", "WARN", "ERROR"],
+                    "description": "Severity level of the log entry."
+                    
+                },
+                "transaction_id": {
+                    "type": ["integer", "null"],
+                    "description": "Foreign key to transaction.transaction_id. NULL if the log entry is not related to a specific transaction."
+                },
+                "stage": {
+                    "type": "string",
+                    "maxLenghth": 40,
+                    "description": "Pipeline stage: ongest | parse | categorize | persist."
+                },
+                "message":{
+                    "type": "string",
+                    "description": "Human-readale event description."
+                },
+                "details_json": {
+                    "type": ["string", "null"],
+                    "description": "Structured oontext - regex match groups, field values, error traces, etc."
+                        
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            
+            }
+        }
+    }
+
+        
+}
+    
