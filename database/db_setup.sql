@@ -17,11 +17,15 @@ CREATE TABLE users (
                                     ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT uq_users_phone     UNIQUE (phone_number),
     CONSTRAINT chk_users_name_len CHECK (CHAR_LENGTH(full_name) >= 1)
+<<<<<<< HEAD
 ) ENGINE=InnoDB COMMENT='Distinct parties involved in MoMo transactions';
 
 CREATE INDEX idx_users_type ON users(user_type);
 CREATE INDEX idx_users_name ON users(full_name);
 
+=======
+) COMMENT='Distinct parties involved in MoMo transactions';
+>>>>>>> 26a92b338a7bfccf8d9090bb0c0ef4a1a0e35120
 
 CREATE TABLE transaction_categories (
     category_id     INT             AUTO_INCREMENT PRIMARY KEY,
@@ -32,7 +36,11 @@ CREATE TABLE transaction_categories (
     description     TEXT            NULL,
     is_active       BOOLEAN         NOT NULL DEFAULT TRUE,
     CONSTRAINT uq_cat_code UNIQUE (category_code)
+<<<<<<< HEAD
 ) ENGINE=InnoDB COMMENT='Catalog of MoMo transaction types';
+=======
+) COMMENT='Catalog of MoMo transaction types';
+>>>>>>> 26a92b338a7bfccf8d9090bb0c0ef4a1a0e35120
 
 CREATE TABLE raw_sms (
     raw_sms_id      INT             AUTO_INCREMENT PRIMARY KEY,
@@ -46,11 +54,15 @@ CREATE TABLE raw_sms (
     ingested_at     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uq_raw_hash UNIQUE (body_hash),
     CONSTRAINT chk_raw_date CHECK (sms_date_ms > 0)
+<<<<<<< HEAD
 ) ENGINE=InnoDB COMMENT='Verbatim SMS records (audit trail)';
 
 CREATE INDEX idx_raw_status ON raw_sms(parse_status);
 CREATE INDEX idx_raw_date   ON raw_sms(sms_date_ms);
 
+=======
+) COMMENT='Verbatim SMS records (audit trail)';
+>>>>>>> 26a92b338a7bfccf8d9090bb0c0ef4a1a0e35120
 
 CREATE TABLE transactions (
     transaction_id      INT             AUTO_INCREMENT PRIMARY KEY,
@@ -80,12 +92,16 @@ CREATE TABLE transactions (
     CONSTRAINT fk_tx_rawsms
         FOREIGN KEY (raw_sms_id) REFERENCES raw_sms(raw_sms_id)
         ON DELETE SET NULL ON UPDATE CASCADE
+<<<<<<< HEAD
 ) ENGINE=InnoDB COMMENT='Parsed MoMo transactions (fact table)';
 
 CREATE INDEX idx_tx_timestamp ON transactions(tx_timestamp);
 CREATE INDEX idx_tx_category  ON transactions(category_id);
 CREATE INDEX idx_tx_status    ON transactions(status);
 CREATE INDEX idx_tx_finid     ON transactions(financial_tx_id);
+=======
+) COMMENT='Parsed MoMo transactions (fact table)';
+>>>>>>> 26a92b338a7bfccf8d9090bb0c0ef4a1a0e35120
 
 CREATE TABLE transaction_participants (
     participant_id  INT             AUTO_INCREMENT PRIMARY KEY,
@@ -101,11 +117,15 @@ CREATE TABLE transaction_participants (
     CONSTRAINT fk_tp_user
         FOREIGN KEY (user_id) REFERENCES users(user_id)
         ON DELETE RESTRICT ON UPDATE CASCADE
+<<<<<<< HEAD
 ) ENGINE=InnoDB COMMENT='M:N junction — who participated in which transaction and how';
 
 CREATE INDEX idx_tp_tx   ON transaction_participants(transaction_id);
 CREATE INDEX idx_tp_user ON transaction_participants(user_id);
 
+=======
+) COMMENT='M:N junction — who participated in which transaction and how';
+>>>>>>> 26a92b338a7bfccf8d9090bb0c0ef4a1a0e35120
 
 CREATE TABLE system_logs (
     log_id          INT             AUTO_INCREMENT PRIMARY KEY,
@@ -123,6 +143,7 @@ CREATE TABLE system_logs (
     CONSTRAINT fk_log_tx
         FOREIGN KEY (transaction_id) REFERENCES transactions(transaction_id)
         ON DELETE SET NULL ON UPDATE CASCADE
+<<<<<<< HEAD
 ) ENGINE=InnoDB COMMENT='Pipeline event log for data processing observability';
 
 CREATE INDEX idx_log_level ON system_logs(log_level);
@@ -303,3 +324,24 @@ SELECT 'raw_sms',                  COUNT(*) FROM raw_sms UNION ALL
 SELECT 'transactions',             COUNT(*) FROM transactions UNION ALL
 SELECT 'transaction_participants', COUNT(*) FROM transaction_participants UNION ALL
 SELECT 'system_logs',              COUNT(*) FROM system_logs;
+=======
+) COMMENT='Pipeline event log for data processing observability';
+
+CREATE INDEX idx_users_type ON users(user_type);
+CREATE INDEX idx_users_name ON users(full_name);
+
+CREATE INDEX idx_raw_status ON raw_sms(parse_status);
+CREATE INDEX idx_raw_date ON raw_sms(sms_date_ms);
+
+CREATE INDEX idx_tx_timestamp ON transactions(tx_timestamp);
+CREATE INDEX idx_tx_category ON transactions(category_id);
+CREATE INDEX idx_tx_status ON transactions(status);
+CREATE INDEX idx_tx_finid ON transactions(financial_tx_id);
+
+CREATE INDEX idx_tp_tx ON transaction_participants(transaction_id);
+CREATE INDEX idx_tp_user ON transaction_participants(user_id);
+
+CREATE INDEX idx_log_level ON system_logs(log_level);
+CREATE INDEX idx_log_stage ON system_logs(stage);
+CREATE INDEX idx_log_time ON system_logs(created_at);
+>>>>>>> 26a92b338a7bfccf8d9090bb0c0ef4a1a0e35120
