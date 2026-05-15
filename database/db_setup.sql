@@ -17,7 +17,7 @@ CREATE TABLE users (
                                     ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT uq_users_phone     UNIQUE (phone_number),
     CONSTRAINT chk_users_name_len CHECK (CHAR_LENGTH(full_name) >= 1)
-) ENGINE=InnoDB COMMENT='Distinct parties involved in MoMo transactions';
+) COMMENT='Distinct parties involved in MoMo transactions';
 
 CREATE TABLE transaction_categories (
     category_id     INT             AUTO_INCREMENT PRIMARY KEY,
@@ -28,7 +28,7 @@ CREATE TABLE transaction_categories (
     description     TEXT            NULL,
     is_active       BOOLEAN         NOT NULL DEFAULT TRUE,
     CONSTRAINT uq_cat_code UNIQUE (category_code)
-) ENGINE=InnoDB COMMENT='Catalog of MoMo transaction types';
+) COMMENT='Catalog of MoMo transaction types';
 
 CREATE TABLE raw_sms (
     raw_sms_id      INT             AUTO_INCREMENT PRIMARY KEY,
@@ -42,7 +42,7 @@ CREATE TABLE raw_sms (
     ingested_at     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uq_raw_hash UNIQUE (body_hash),
     CONSTRAINT chk_raw_date CHECK (sms_date_ms > 0)
-) ENGINE=InnoDB COMMENT='Verbatim SMS records (audit trail)';
+) COMMENT='Verbatim SMS records (audit trail)';
 
     user_id         INT             AUTO_INCREMENT PRIMARY KEY,
     full_name       VARCHAR(100)    NOT NULL,
@@ -128,11 +128,7 @@ CREATE TABLE transactions (
         FOREIGN KEY (raw_sms_id) REFERENCES raw_sms(raw_sms_id)
         ON DELETE SET NULL ON UPDATE CASCADE
 
-) ENGINE=InnoDB COMMENT='Parsed MoMo transactions (fact table)';
-
-);
-
-
+) COMMENT='Parsed MoMo transactions (fact table)';
 
 CREATE TABLE transaction_participants (
     participant_id  INT             AUTO_INCREMENT PRIMARY KEY,
@@ -157,10 +153,7 @@ CREATE TABLE transaction_participants (
         FOREIGN KEY (user_id) REFERENCES users(user_id)
         ON DELETE RESTRICT ON UPDATE CASCADE
 
-) ENGINE=InnoDB COMMENT='M:N junction — who participated in which transaction and how';
-
-);
-
+) COMMENT='M:N junction — who participated in which transaction and how';
 
 CREATE TABLE system_logs (
     log_id          INT             AUTO_INCREMENT PRIMARY KEY,
@@ -187,23 +180,20 @@ CREATE TABLE system_logs (
 
 ) ENGINE=InnoDB COMMENT='Pipeline event log for data processing observability';
 
-);
-
-
 CREATE INDEX idx_users_type ON users(user_type);
 CREATE INDEX idx_users_name ON users(full_name);
 
 CREATE INDEX idx_raw_status ON raw_sms(parse_status);
-CREATE INDEX idx_raw_date   ON raw_sms(sms_date_ms);
+CREATE INDEX idx_raw_date ON raw_sms(sms_date_ms);
 
 CREATE INDEX idx_tx_timestamp ON transactions(tx_timestamp);
-CREATE INDEX idx_tx_category  ON transactions(category_id);
-CREATE INDEX idx_tx_status    ON transactions(status);
-CREATE INDEX idx_tx_finid     ON transactions(financial_tx_id);
+CREATE INDEX idx_tx_category ON transactions(category_id);
+CREATE INDEX idx_tx_status ON transactions(status);
+CREATE INDEX idx_tx_finid ON transactions(financial_tx_id);
 
-CREATE INDEX idx_tp_tx   ON transaction_participants(transaction_id);
+CREATE INDEX idx_tp_tx ON transaction_participants(transaction_id);
 CREATE INDEX idx_tp_user ON transaction_participants(user_id);
 
 CREATE INDEX idx_log_level ON system_logs(log_level);
 CREATE INDEX idx_log_stage ON system_logs(stage);
-CREATE INDEX idx_log_time  ON system_logs(created_at);
+CREATE INDEX idx_log_time ON system_logs(created_at);
