@@ -1,163 +1,6 @@
+
 {
-<<<<<<< HEAD
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "MoMo SMS data model — JSON representations",
-  "description": "These JSON examples mirror the SQL schema in database_setup.sql. Each top-level key is one of the database entities, plus one composite 'full_transaction' object that shows how the relational data is serialized for an API response.",
 
-  "user": {
-    "user_id": 2,
-    "full_name": "Jane Smith",
-    "phone_number": "250791666666",
-    "account_number": null,
-    "user_type": "customer",
-    "is_anonymized": false,
-    "created_at": "2024-05-10T16:30:51Z",
-    "updated_at": "2024-05-10T16:30:51Z"
-  },
-
-  "transaction_category": {
-    "category_id": 1,
-    "category_code": "INCOMING_RECEIVE",
-    "category_name": "Incoming money received",
-    "direction": "credit",
-    "description": "Money received from another MoMo customer",
-    "is_active": true
-  },
-
-  "raw_sms": {
-    "raw_sms_id": 1,
-    "sms_address": "M-Money",
-    "sms_date_ms": 1715351458724,
-    "readable_date": "10 May 2024 4:30:58 PM",
-    "body": "You have received 2000 RWF from Jane Smith (*********013) on your mobile money account at 2024-05-10 16:30:51. Your new balance:2000 RWF. Financial Transaction Id: 76662021700.",
-    "body_hash": "9f8b...e21c",
-    "parse_status": "parsed",
-    "ingested_at": "2024-05-10T16:31:00Z"
-  },
-
-  "transaction": {
-    "transaction_id": 1,
-    "external_tx_ref": null,
-    "financial_tx_id": "76662021700",
-    "category_id": 1,
-    "amount": 2000.00,
-    "fee": 0.00,
-    "currency": "RWF",
-    "new_balance": 2000.00,
-    "tx_timestamp": "2024-05-10T16:30:51Z",
-    "status": "completed",
-    "token": null,
-    "message_note": null,
-    "raw_sms_id": 1,
-    "created_at": "2024-05-10T16:31:00Z",
-    "updated_at": "2024-05-10T16:31:00Z"
-  },
-
-  "transaction_participant": {
-    "participant_id": 1,
-    "transaction_id": 1,
-    "user_id": 2,
-    "role": "sender",
-    "created_at": "2024-05-10T16:31:00Z"
-  },
-
-  "system_log": {
-    "log_id": 1,
-    "raw_sms_id": 1,
-    "transaction_id": 1,
-    "log_level": "INFO",
-    "stage": "parse",
-    "message": "Parsed INCOMING_RECEIVE successfully",
-    "details_json": {
-      "regex": "incoming_v1",
-      "fields_extracted": 4
-    },
-    "created_at": "2024-05-10T16:31:00Z"
-  },
-
-  "full_transaction": {
-    "_comment": "Composite object — how a single transaction looks when joined with its category, participants, and source SMS for API responses. Demonstrates nesting of related data.",
-    "transaction_id": 5,
-    "external_tx_ref": null,
-    "financial_tx_id": "14098463509",
-    "amount": 20000.00,
-    "fee": 350.00,
-    "currency": "RWF",
-    "new_balance": 6400.00,
-    "tx_timestamp": "2024-05-26T02:10:27Z",
-    "status": "completed",
-    "token": null,
-    "message_note": "Agent withdrawal",
-    "category": {
-      "category_id": 5,
-      "category_code": "WITHDRAWAL_AGENT",
-      "category_name": "Agent withdrawal",
-      "direction": "debit"
-    },
-    "participants": [
-      {
-        "role": "sender",
-        "user": {
-          "user_id": 1,
-          "full_name": "Account Holder",
-          "account_number": "36521838",
-          "user_type": "self"
-        }
-      },
-      {
-        "role": "agent",
-        "user": {
-          "user_id": 7,
-          "full_name": "Agent Sophia",
-          "phone_number": "250795963036",
-          "user_type": "agent"
-        }
-      }
-    ],
-    "source_sms": {
-      "raw_sms_id": 5,
-      "sms_address": "M-Money",
-      "readable_date": "26 May 2024 2:10:34 AM",
-      "body": "You Abebe Chala CHEBUDIE have via agent: Agent Sophia (250790777777), withdrawn 20000 RWF from your mobile money account: 36521838 at 2024-05-26 02:10:27. Your new balance: 6400 RWF. Fee paid: 350 RWF. Financial Transaction Id: 14098463509."
-    },
-    "processing_logs": [
-      {
-        "log_level": "INFO",
-        "stage": "parse",
-        "message": "Withdrawal parsed: 2 participants linked",
-        "created_at": "2024-05-26T02:10:35Z"
-      }
-    ]
-  },
-
-  "sql_to_json_mapping": {
-    "_comment": "Reference table mapping SQL columns to JSON keys. Useful for the API serialisation layer.",
-    "users": {
-      "user_id": "user.user_id (integer)",
-      "full_name": "user.full_name (string)",
-      "phone_number": "user.phone_number (string|null)",
-      "user_type": "user.user_type (enum string)"
-    },
-    "transactions": {
-      "transaction_id": "transaction.transaction_id (integer)",
-      "amount": "transaction.amount (number, 2dp)",
-      "fee": "transaction.fee (number, 2dp)",
-      "tx_timestamp": "transaction.tx_timestamp (ISO-8601 string)",
-      "category_id": "nested as transaction.category (object)",
-      "raw_sms_id": "nested as transaction.source_sms (object)"
-    },
-    "transaction_participants": {
-      "_comment": "This junction table is NOT exposed as a top-level JSON resource; it becomes the 'participants' array nested inside a transaction."
-    },
-    "transaction_categories": {
-      "_comment": "Embedded inside each transaction as the 'category' object (rather than referenced by id) for API convenience."
-    },
-    "system_logs": {
-      "_comment": "Optionally embedded as 'processing_logs' on a transaction when admin/debug views are requested."
-    }
-  }
-}
-=======
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "MoMo SMS Pipeline - Entity Schemas",
     "description": "JSON Schemas for the main entities in the MoMo SMS processing pipeline",
@@ -245,24 +88,14 @@
                     "is_anomymized": false,
                     "created_at": "2024-01-03T15:45:00Z",
                     "updated_at": "2024-01-03T15:45:00Z"
-                },
-
-                {
-                    "user_id": 4,
-                    "full_name": "Device Owner",
-                    "phone_number": "250788000000",
-                    "account_number": "0987654321",
-                    "user_type": "self",
-                    "is_anomymized": false,
-                    "created_at": "2024-01-04T10:20:00Z",
-                    "updated_at": "2024-01-04T10:20:00Z"
                 }
+
             ]
         },
 
 
 
-        "transaction_category": {
+        "transaction_categories": {
             "title": "Transaction Category",
             "type": "object",
             "description":"Catalog of MOMO transaction types with direction(credit/debit/info).",
@@ -314,14 +147,6 @@
                     "category_name": "Outgoing Money",
                     "direction": "debit",
                     "description": "Transactions where money is sent.",
-                    "is_active": true
-                },
-                {
-                    "category_id": 3,
-                    "category_code": "AIRTIME_PURCHASE",
-                    "category_name": "Airtime Purchase",
-                    "direction": "debit",
-                    "description": "Transactions for buying airtime.",
                     "is_active": true
                 },
                 {
@@ -400,16 +225,6 @@
                     "ingested_at": "2024-01-14T02:15:00Z"
                 },
                 {
-                    "raw_sms_id": 2,
-                    "sms_address": "M-Money",
-                    "sms_date_ms": 1700003600000,
-                    "readable_data": "2024-01-14T03:13:20Z",
-                    "body": "You have sent RWF 5,000 to ABC Supermarket. Your new balance is RWF 45,000.",
-                    "body_hash": "5d41402abc4b2a76b9719d911017c592",
-                    "parse_status": "pending",
-                    "ingested_at": "2024-01-14T03:15:00Z"
-                },
-                {
                     "raw_sms_id": 101,
                     "sms_address": "M-Money",
                     "sms_date_ms": 1709280000000,
@@ -450,14 +265,14 @@
                     "maxLength": 40,
                     "description": "Reference ID from the SMS, e.g Momo transaction ID. NULL if not available."
                 },
-                "finacial_tx_id": {
+                "financial_tx_id": {
                     "type": ["string", "null"],
                     "maxLength": 40,
                     "description": "Reference ID from the SMS, e.g Momo transaction ID. NULL if not available."
                 },
                 "category_id": {
                     "type": "integer",
-                    "description": "Foreign key to transaction_category.category_id."
+                    "description": "Foreign key to transaction_categories.category_id."
                 },
                 "amount": {
                     "type": "number",
@@ -516,7 +331,7 @@
                 {
                     "transaction_id": 1,
                     "external_tx_ref": "TXN001",
-                    "finacial_tx_id": "FIN001",
+                    "financial_tx_id": "FIN001",
                     "category_id": 1,
                     "amount": 10000,
                     "fee": 100,
@@ -532,7 +347,7 @@
                 {
                     "transaction_id": 2,
                     "external_tx_ref": "TXN002",
-                    "finacial_tx_id": "FIN002",
+                    "financial_tx_id": "FIN002",
                     "category_id": 2,
                     "amount": 5000,
                     "fee": 50,
@@ -548,7 +363,7 @@
                 {
                     "transaction_id": 3,
                     "external_tx_ref": null,
-                    "finacial_tx_id": null,
+                    "financial_tx_id": null,
                     "category_id": 3,
                     "amount": 2000,
                     "fee": 20,
@@ -616,14 +431,8 @@
                     "user_id": 3,
                     "role": "sender",
                     "created_at": "2024-01-14T05:15:00Z"
-                },
-                {
-                    "participant_id": 4,
-                    "transaction_id": 2,
-                    "user_id": 4,
-                    "role": "receiver",
-                    "created_at": "2024-01-14T05:15:00Z"
                 }
+                
             ]
             
         },
@@ -671,11 +480,114 @@
                     "format": "date-time"
                 }
             
+            },
+            "examples": [
+                {
+                    "log_id": 1,
+                    "raw_sms_id": 1,
+                    "log_level": "INFO",
+                    "transaction_id": null,
+                    "stage": "ingest",
+                    "message": "SMS ingested successfully.",
+                    "details_json": null,
+                    "created_at": "2024-01-14T02:15:00Z"
+                },
+                {
+                    "log_id": 2,
+                    "raw_sms_id": 2,
+                    "log_level": "INFO",
+                    "transaction_id": 2,
+                    "stage": "parse",
+                    "message": "Withdrawal parsed: 2 participants linked",
+                    "created_at": "2024-05-26T02:10:35Z"
+                }
+            ]
+        },
+        "full_transaction": {
+            "_comment": "Composite object — how a single transaction looks when joined with its category, participants, and source SMS for API responses. Demonstrates nesting of related data.",
+            "transaction_id": 5,
+            "external_tx_ref": null,
+            "financial_tx_id": "14098463509",
+            "amount": 20000.00,
+            "fee": 350.00,
+            "currency": "RWF",
+            "new_balance": 6400.00,
+            "tx_timestamp": "2024-05-26T02:10:27Z",
+            "status": "completed",
+            "token": null,
+            "message_note": "Agent withdrawal",
+            "category": {
+            "category_id": 5,
+            "category_code": "WITHDRAWAL_AGENT",
+            "category_name": "Agent withdrawal",
+            "direction": "debit"
+            },
+            "participants": [
+            {
+                "role": "sender",
+                "user": {
+                "user_id": 1,
+                "full_name": "Account Holder",
+                "account_number": "36521838",
+                "user_type": "self"
+                }
+            },
+            {
+                "role": "agent",
+                "user": {
+                "user_id": 7,
+                "full_name": "Agent Sophia",
+                "phone_number": "250795963036",
+                "user_type": "agent"
+                }
+            }
+            ],
+            "source_sms": {
+            "raw_sms_id": 5,
+            "sms_address": "M-Money",
+            "readable_date": "26 May 2024 2:10:34 AM",
+            "body": "You Abebe Chala CHEBUDIE have via agent: Agent Sophia (250790777777), withdrawn 20000 RWF from your mobile money account: 36521838 at 2024-05-26 02:10:27. Your new balance: 6400 RWF. Fee paid: 350 RWF. Financial Transaction Id: 14098463509."
+            },
+            "processing_logs": [
+            {
+                "log_level": "INFO",
+                "stage": "parse",
+                "message": "Withdrawal parsed: 2 participants linked",
+                "created_at": "2024-05-26T02:10:35Z"
+            }
+            ]
+        },
+
+        "sql_to_json_mapping":{
+            "_comment": "Reference table mapping SQL columns to JSON keys. Useful for the API serialisation layer.",
+            "users": {
+            "user_id": "user.user_id (integer)",
+            "full_name": "user.full_name (string)",
+            "phone_number": "user.phone_number (string|null)",
+            "user_type": "user.user_type (enum string)"
+            },
+            "transactions": {
+            "transaction_id": "transaction.transaction_id (integer)",
+            "amount": "transaction.amount (number, 2dp)",
+            "fee": "transaction.fee (number, 2dp)",
+            "tx_timestamp": "transaction.tx_timestamp (ISO-8601 string)",
+            "category_id": "nested as transaction.category (object)",
+            "raw_sms_id": "nested as transaction.source_sms (object)"
+            },
+            "transaction_participants": {
+            "_comment": "This junction table is NOT exposed as a top-level JSON resource; it becomes the 'participants' array nested inside a transaction."
+            },
+            "transaction_categories": {
+            "_comment": "Embedded inside each transaction as the 'category' object (rather than referenced by id) for API convenience."
+            },
+            "system_logs": {
+            "_comment": "Optionally embedded as 'processing_logs' on a transaction when admin/debug views are requested."
             }
         }
-    }
-
         
-}
+    }
     
->>>>>>> 26a92b338a7bfccf8d9090bb0c0ef4a1a0e35120
+}
+                
+        
+    
