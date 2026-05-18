@@ -125,3 +125,20 @@ CREATE INDEX idx_tp_user ON transaction_participants(user_id);
 CREATE INDEX idx_log_level ON system_logs(log_level);
 CREATE INDEX idx_log_stage ON system_logs(stage);
 CREATE INDEX idx_log_time ON system_logs(created_at);
+ 
+-- DML Section sample data 
+-- Notice example datas displayed below was generated 
+-- by chatgpt to generate examples based on the table schema we gave to it.
+
+
+-- categories data example generated  by AI
+INSERT INTO transaction_categories (category_code, category_name, direction, description) VALUES
+('INCOMING_RECEIVE','Incoming money received','credit','Money received from another MoMo customer'),
+('PAYMENT_CODE','Payment to merchant code','debit','Payment completed to a numeric merchant code'),
+('TRANSFER_PHONE','Transfer to phone','debit','Funds transferred to another MoMo number'),
+('BANK_DEPOSIT','Bank deposit','credit','Cash/bank deposit added to MoMo account'),
+('WITHDRAWAL_AGENT','Agent withdrawal','debit','Cash withdrawn via a MoMo agent'),
+('AIRTIME','Airtime purchase','debit','MTN airtime top-up'),
+('CASH_POWER','MTN Cash Power','debit','Electricity token purchase'),
+('DIRECT_PAYMENT','Direct payment (external)','debit','External vendor charge on MoMo account'),
+('OTP','One-time password','info','MoMo OTP delivered via SMS (non-financial)');
