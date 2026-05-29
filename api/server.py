@@ -1,5 +1,10 @@
 import json
+import sys
 from http.server import BaseHTTPRequestHandler
+from pathlib import Path
+
+# allowing `python api/server.py` from the project root
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 HOST = "localhost"
 PORT = 8080
@@ -22,7 +27,12 @@ class MoMoHandler(BaseHTTPRequestHandler):
 
         self.send_response(401)
         self.send_header("Content-Type", "application/json; charset=utf-8")
-        body = json.dumps({"error": "Unauthorized", "status": 401}).encode()
+
+        body = json.dumps({
+                "error": "Unauthorized", 
+                "status": 401
+            }).encode()
+
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
@@ -30,6 +40,7 @@ class MoMoHandler(BaseHTTPRequestHandler):
 
     def _read_json_body(self) -> dict | None:
         length_header = self.headers.get("Content-Length")
+        
         if not length_header:
             return None
         try:
@@ -45,3 +56,7 @@ class MoMoHandler(BaseHTTPRequestHandler):
             return None
         
         return data if isinstance(data, dict) else None
+
+    # overwrote default access log; replace with cleaner formatting
+    def log_message(self, format, *args):
+        sys.stderr.write(f"[{self.log_date_time_string()}] {format % args}\n")
