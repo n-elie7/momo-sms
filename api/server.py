@@ -61,5 +61,3 @@ class MoMoHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         sys.stderr.write(f"[{self.log_date_time_string()}] {format % args}\n")
 
-
-    
