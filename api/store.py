@@ -1,5 +1,5 @@
 """
-api/store.py  - TransactionStore
+api/store.py   TransactionStore
 ==================================
 Loads MoMo SMS records from modified_sms_v2.xml, holds them in memory as a
 dict[id -> record] for O(1) lookups, and exposes full CRUD + DSA helpers.
@@ -51,7 +51,7 @@ from xml.etree import ElementTree as ET
 
 
 # ---------------------------------------------------------------------------
-# Regex patterns – compiled once at import time
+# Regex patterns  compiled once at import time
 # ---------------------------------------------------------------------------
 
 # Amounts like  2000 / 1,000 / 38,400
