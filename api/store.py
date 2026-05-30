@@ -1,4 +1,6 @@
-
+# Loads MoMo SMS records into memory for fast O(1) lookups and CRUD operations.
+# Supports multiple transaction categories and thread safe updates.
+# Each record stores transaction details, parties involved, balances, and timestamps.
 from __future__ import annotations
 
 import re
@@ -10,7 +12,9 @@ from typing import Any
 from xml.etree import ElementTree as ET
 
 
+
 # Regex patterns  compiled once at import time
+
 
 # Amounts like  2000 / 1,000 / 38,400
 _AMT  = r"([\d,]+(?:\.\d+)?)\s*RWF"
@@ -254,8 +258,13 @@ def _build_record(elem: ET.Element, record_id: str) -> dict[str, Any]:
 
 
 
+# TransactionStore
+
+
 class TransactionStore:
-  
+ # Thread-safe store for MoMo SMS transactions.
+# Uses a dictionary for fast O(1) lookups.
+# Loads data from XML or starts empty for testing.
 
     def __init__(self, xml_path: str | Path | None = None) -> None:
         self._data: dict[str, dict] = {}
@@ -263,6 +272,9 @@ class TransactionStore:
         if xml_path is not None:
             self._load_xml(Path(xml_path))
 
+    
+    # Loading
+   
 
     def _load_xml(self, path: Path) -> None:
         if not path.exists():
@@ -283,6 +295,9 @@ class TransactionStore:
         print(f"[Store] Loaded {len(loaded)} transactions from {path}")
 
     
+    # CRUD
+   
+
     def list_all(
         self,
         *,
@@ -290,13 +305,8 @@ class TransactionStore:
         page_size: int = 100,
         tx_category: str | None = None,
     ) -> dict[str, Any]:
-        """
-        Paginated, optionally category-filtered list of records (newest first).
-
-        Returns
-        -------
-        dict  →  { data, total, page, page_size, pages }
-        """
+        # Returns paginated MoMo records sorted by newest first, with optional category filtering.
+        # Output includes data, total count, current page, page size, and total pages.
         page_size = min(max(1, page_size), 500)
         page      = max(1, page)
 
@@ -322,15 +332,9 @@ class TransactionStore:
             return self._data.get(record_id)
 
     def create(self, payload: dict[str, Any]) -> dict[str, Any]:
-        """
-        Insert a new transaction.
-
-        Required: ``body`` (str).
-        Optional: any field in the record schema.
-
-        Raises ValueError if ``body`` is missing or empty, or if the ``id``
-        already exists.
-        """
+        # Inserts a new transaction record.
+        # Requires a body string and accepts optional record fields.
+        # Raises ValueError if body is empty or transaction ID already exists.
         body = payload.get("body", "")
         if not isinstance(body, str) or not body.strip():
             raise ValueError("Field 'body' is required and must be a non-empty string.")
@@ -365,9 +369,9 @@ class TransactionStore:
         return record
 
     def update(self, record_id: str, patch: dict[str, Any]) -> dict[str, Any] | None:
-        """
-        Partially update a record (PATCH semantics).
-        """
+       # Partially updates a transaction record (PATCH-style update).
+        # Ignores immutable fields like id and raw_date.
+        # Returns the updated record or None if the record is not found.
         IMMUTABLE = {"id", "raw_date"}
         ALLOWED   = {"tx_category", "amount", "fee", "balance", "sender",
                      "receiver", "financial_tx_id", "timestamp",
@@ -403,9 +407,9 @@ class TransactionStore:
             del self._data[record_id]
         return True
 
-    # ------------------------------------------------------------------
+    
     # DSA comparison helpers
-    # ------------------------------------------------------------------
+   
 
     def linear_search(self, record_id: str) -> dict[str, Any] | None:
         """O(n) sequential scan — for DSA demonstration only."""
@@ -419,10 +423,9 @@ class TransactionStore:
         """O(1) hash-table lookup — production path."""
         return self.get(record_id)
 
-    # ------------------------------------------------------------------
+   
     # Convenience
-    # ------------------------------------------------------------------
-
+   
     def __len__(self) -> int:
         with self._lock:
             return len(self._data)
