@@ -1,16 +1,7 @@
-"""
-dsa/search_comparison.py
-------------------------
-Benchmarks two search strategies over the parsed MoMo transactions:
+# Compares Linear Search and Dictionary Lookup on parsed MoMo transactions and reports
+# execution time and speedup.
 
-    1. Linear Search  — O(n) scan through a list
-    2. Dictionary Lookup — O(1) hash-table access
 
-Usage:
-    python3 dsa/search_comparison.py
-
-Prints: total time, average per-lookup time, and speedup factor.
-"""
 
 import time
 import random
