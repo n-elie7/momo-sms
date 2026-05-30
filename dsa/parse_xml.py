@@ -15,6 +15,11 @@ import os
 import json
 from collections import Counter
 
+# ── Path resolution ────────────────────────────────────────────────────────────
+_HERE     = os.path.dirname(os.path.abspath(__file__))
+_ROOT     = os.path.dirname(_HERE)
+_XML_PATH = os.path.join(_ROOT, "data", "modified_sms_v2.xml")
+
 # ──────────────────────────────────────────────────────────────────────────────
 # CATEGORY DETECTION
 # Each tuple is (keyword_list, category_label).
@@ -187,6 +192,16 @@ def main():
     with open(out_path, 'w', encoding='utf-8') as f:
         json.dump(transactions, f, indent=2, ensure_ascii=False)
     print(f"\n✔  JSON snapshot saved → {out_path}")
+# ── Module-level data (imported by search_comparison.py and server.py) ────────
+transactions_list = parse_sms_xml(_XML_PATH)
+transactions_dict = {t["id"]: t for t in transactions_list}
+
+def get_next_id(transactions_dict=transactions_dict, _counter=[None]):
+    if _counter[0] is None:
+        _counter[0] = max(transactions_dict.keys(), default=0) + 1
+    nid = _counter[0]
+    _counter[0] += 1
+    return nid
 
 
 if __name__ == '__main__':
