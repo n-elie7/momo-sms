@@ -46,11 +46,12 @@ directly in constant time regardless of how many records exist.
 
 **Environment:** Python 3.12 · 1,691 records · 1,000 lookup calls per method
 
-| Method             | Total (1 000 runs) | Avg per call | Worst-case single call |
-|--------------------|--------------------|--------------|------------------------|
-| Linear Search      | 27.745 ms          | 27.74 µs     | 49.87 µs (last record) |
-| Dictionary Lookup  | 0.081 ms           | 0.08 µs      | ~0.08 µs (constant)    |
-| **Speedup**        | —                  | **~344×**    | —                      |
+| Method                        | Total (1000 runs) | Avg per call | Worst case  |
+|-------------------------------|-------------------|--------------|-------------|
+| Linear Search (avg case)      | 73.31 ms          | 73.31 µs     | —           |
+| Linear Search (worst case)    | —                 | —            | 194.03 µs   |
+| Dictionary Lookup             | 0.32 ms           | 0.32 µs      | ~0.32 µs    |
+| **Speedup**                   | —                 | **232.6x**   | **615.6x**  |
 
 Dictionary lookup completed the same 1,000 searches **344 times faster** than
 linear search. The worst-case linear call (targeting the very last record,
