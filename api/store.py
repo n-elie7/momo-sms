@@ -1,43 +1,3 @@
-"""
-api/store.py   TransactionStore
-==================================
-Loads MoMo SMS records from modified_sms_v2.xml, holds them in memory as a
-dict[id -> record] for O(1) lookups, and exposes full CRUD + DSA helpers.
-A threading.Lock guards every mutation for multi-threaded HTTP server safety.
-
-Supported SMS body patterns (all 9 found in the real dataset)
--------------------------------------------------------------
-  payment_sent_txid   "TxId: 123. Your payment of X RWF to <Name> <code>…"
-  transfer_sent       "*165*S* X RWF transferred to <Name> (phone) from …"
-  bank_deposit        "*113*R* A bank deposit of X RWF …"
-  received            "You have received X RWF from <Name> (*…) …"
-  airtime             "*162*TxId:…* Your payment of X RWF to Airtime …"
-  direct_payment_debit"*164*S* … transaction of X RWF by <Name> …"
-  withdrawal          body contains "withdraw"
-  bundle              "Yello!Umaze kugura …"  (data/voice bundle purchase)
-  bank_transfer_out   "You have transferred X RWF to <Name> (phone) from …"
-  otp                 "<#> Dear Customer, your MTN MoMo … one-time password"
-  reversal            "*143*S* / reversal has been initiated …"
-  failed_txn          "*143*R* … transaction … failed …"
-  other               anything that doesn't match the above
-
-Record schema
--------------
-{
-    "id":           str,        # "txn-000001", …
-    "tx_category":  str,        # one of the labels above
-    "amount":       float|None,
-    "fee":          float|None,
-    "balance":      float|None, # new balance after tx (when available)
-    "sender":       str|None,   # name or phone of the party sending money
-    "receiver":     str|None,   # name or phone of the party receiving money
-    "financial_tx_id": str|None,# MTN Financial Transaction Id when present
-    "timestamp":    str,        # ISO-8601 UTC
-    "readable_date":str,        # human-readable from XML (e.g. "10 May 2024")
-    "body":         str,        # original SMS body (preserved verbatim)
-    "raw_date":     int         # epoch-ms (for sorting)
-}
-"""
 
 from __future__ import annotations
 
@@ -50,9 +10,7 @@ from typing import Any
 from xml.etree import ElementTree as ET
 
 
-# ---------------------------------------------------------------------------
 # Regex patterns  compiled once at import time
-# ---------------------------------------------------------------------------
 
 # Amounts like  2000 / 1,000 / 38,400
 _AMT  = r"([\d,]+(?:\.\d+)?)\s*RWF"
@@ -130,9 +88,8 @@ _RE = {
 }
 
 
-# ---------------------------------------------------------------------------
 # Parsing helpers
-# ---------------------------------------------------------------------------
+
 
 def _f(s: str | None) -> float | None:
     """Parse a comma-formatted number string to float, or return None."""
@@ -296,23 +253,9 @@ def _build_record(elem: ET.Element, record_id: str) -> dict[str, Any]:
     }
 
 
-# ---------------------------------------------------------------------------
-# TransactionStore
-# ---------------------------------------------------------------------------
 
 class TransactionStore:
-    """
-    Thread-safe, in-memory store for MoMo SMS transactions.
-
-    Uses ``dict[str, dict]`` so every ID lookup is O(1) (hash-table) instead
-    of O(n) linear scan.
-
-    Parameters
-    ----------
-    xml_path : str | Path | None
-        Path to ``modified_sms_v2.xml``.  Pass ``None`` to start empty
-        (useful for unit tests).
-    """
+  
 
     def __init__(self, xml_path: str | Path | None = None) -> None:
         self._data: dict[str, dict] = {}
@@ -320,9 +263,6 @@ class TransactionStore:
         if xml_path is not None:
             self._load_xml(Path(xml_path))
 
-    # ------------------------------------------------------------------
-    # Loading
-    # ------------------------------------------------------------------
 
     def _load_xml(self, path: Path) -> None:
         if not path.exists():
@@ -342,10 +282,7 @@ class TransactionStore:
 
         print(f"[Store] Loaded {len(loaded)} transactions from {path}")
 
-    # ------------------------------------------------------------------
-    # CRUD
-    # ------------------------------------------------------------------
-
+    
     def list_all(
         self,
         *,
@@ -430,8 +367,6 @@ class TransactionStore:
     def update(self, record_id: str, patch: dict[str, Any]) -> dict[str, Any] | None:
         """
         Partially update a record (PATCH semantics).
-        ``id`` and ``raw_date`` are immutable and silently ignored if supplied.
-        Returns the updated record, or None if not found.
         """
         IMMUTABLE = {"id", "raw_date"}
         ALLOWED   = {"tx_category", "amount", "fee", "balance", "sender",
