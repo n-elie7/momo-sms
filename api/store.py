@@ -4,11 +4,11 @@ import threading
 
 # Reuse the parser we already wrote and tested
 try:
-    from ..dsa.parse_xml import parse_sms_file
+    from dsa.parse_xml import parse_sms_xml
 except ImportError:
     import sys
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-    from dsa.parse_xml import parse_sms_file
+    from dsa.parse_xml import parse_sms_xml
 
 
 class TransactionStore:
@@ -21,7 +21,7 @@ class TransactionStore:
 
     def load_from_xml(self, xml_path: str | Path) -> int:
         """load data from xml"""
-        transactions = parse_sms_file(xml_path)
+        transactions = parse_sms_xml(xml_path)
         with self._lock:
             self._by_id = {t["id"]: t for t in transactions}
             self._next_id = (max(self._by_id) + 1) if self._by_id else 1
