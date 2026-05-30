@@ -1,28 +1,18 @@
-# Compares Linear Search and Dictionary Lookup on parsed MoMo transactions and reports
-# execution time and speedup.
-
-
 
 import time
 import random
-import sys
-import os
+from pathlib import Path
 
-# ── path fix so we can import parse_xml from same folder ──────────────────────
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from parse_xml import transactions_list, transactions_dict
 
-# ══════════════════════════════════════════════════════════════════════════════
-# SEARCH IMPLEMENTATIONS
-# ══════════════════════════════════════════════════════════════════════════════
+try:
+    from parse_xml import parse_sms_xml
+except ImportError:
+    from parse_xml import parse_sms_xml
+
 
 def linear_search(data: list[dict], target_id: int) -> dict | None:
-    """
-    O(n) — walks the list from index 0 until a matching id is found.
-    Worst case: target is the last element (all n records inspected).
-    Best case:  target is the first element (1 comparison).
-    Average:    n/2 comparisons.
-    """
+    """O(n) walks the list from index 0 until a matching id is found."""
     for record in data:
         if record["id"] == target_id:
             return record
@@ -30,97 +20,103 @@ def linear_search(data: list[dict], target_id: int) -> dict | None:
 
 
 def dict_lookup(index: dict[int, dict], target_id: int) -> dict | None:
-    """
-    O(1) — Python dict is a hash table.
-    The key is hashed to a memory address; value retrieved directly.
-    Time does NOT grow as dataset grows.
-    """
+    """O(1) Python dict is a hash table."""
     return index.get(target_id)
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# BENCHMARK RUNNER
-# ══════════════════════════════════════════════════════════════════════════════
-
-def run_benchmark(runs: int = 1000) -> None:
-    n       = len(transactions_list)
-    id_pool = [t["id"] for t in transactions_list]
+def run_benchmark(runs: int = 1000) -> dict:
+    id_pool = [transaction["id"] for transaction in transactions_list]
 
     # Use the same random IDs for both methods so the comparison is fair
-    random.seed(42)
     search_ids = [random.choice(id_pool) for _ in range(runs)]
 
-    print("=" * 60)
-    print("  MoMo DSA Benchmark — Linear Search vs Dictionary Lookup")
-    print("=" * 60)
-    print(f"  Dataset size : {n} transactions")
-    print(f"  Lookups/test : {runs}")
-    print()
-
-    # ── 1. Linear Search ──────────────────────────────────────────────────────
+    # Linear Search
     start_linear = time.perf_counter()
     for tid in search_ids:
         linear_search(transactions_list, tid)
     end_linear = time.perf_counter()
 
-    linear_total_ms = (end_linear - start_linear) * 1_000
-    linear_avg_us   = (end_linear - start_linear) / runs * 1_000_000
+    linear_total = end_linear - start_linear
 
-    # ── 2. Dictionary Lookup ──────────────────────────────────────────────────
+    # Dictionary Lookup
     start_dict = time.perf_counter()
     for tid in search_ids:
         dict_lookup(transactions_dict, tid)
     end_dict = time.perf_counter()
 
-    dict_total_ms = (end_dict - start_dict) * 1_000
-    dict_avg_us   = (end_dict - start_dict) / runs * 1_000_000
+    dict_total = end_dict - start_dict
 
-    # ── 3. Worst-case linear (target = last record) ───────────────────────────
-    worst_id = transactions_list[-1]["id"]
-    start_wc = time.perf_counter()
-    for _ in range(runs):
-        linear_search(transactions_list, worst_id)
-    end_wc = time.perf_counter()
-    worst_avg_us = (end_wc - start_wc) / runs * 1_000_000
+    return {
+        "records_in_dataset": len(transactions_list),
+        "num_lookups": runs,
+        "linear_total_seconds": linear_total,
+        "dict_total_seconds":   dict_total,
+        "linear_avg_microseconds": (linear_total / runs) * 1_000_000,
+        "dict_avg_microseconds":   (dict_total   / runs) * 1_000_000,
+        # Avoid divide by zero
+        "speedup_factor": linear_total / dict_total if dict_total > 0 else float("inf"),
+    }
 
-    # ── Results table ─────────────────────────────────────────────────────────
-    speedup = linear_avg_us / dict_avg_us
-
-    print(f"  {'Method':<28} {'Total (ms)':>12}  {'Avg/call (µs)':>14}")
-    print("  " + "-" * 56)
-    print(f"  {'Linear Search (avg case)':<28} {linear_total_ms:>12.4f}  {linear_avg_us:>14.4f}")
-    print(f"  {'Linear Search (worst case)':<28} {'—':>12}  {worst_avg_us:>14.4f}")
-    print(f"  {'Dictionary Lookup':<28} {dict_total_ms:>12.4f}  {dict_avg_us:>14.4f}")
-    print("  " + "-" * 56)
-    print(f"  Speedup (dict vs linear avg)  : {speedup:.1f}x faster")
-    print(f"  Speedup (dict vs linear worst): {worst_avg_us / dict_avg_us:.1f}x faster")
-    print()
-
-    # ── Correctness check ─────────────────────────────────────────────────────
-    print("  Correctness check (first 5 lookups match):")
-    all_match = True
-    for tid in search_ids[:5]:
-        r1 = linear_search(transactions_list, tid)
-        r2 = dict_lookup(transactions_dict, tid)
-        match = r1 == r2
-        if not match:
-            all_match = False
-        status = "✔" if match else "✘"
-        print(f"    {status}  id={tid}  →  {r1['category'] if r1 else 'None'}")
-
-    print()
-    if all_match:
-        print("  ✔  Both methods return identical results.")
-    else:
-        print("  ✘  MISMATCH detected — check data integrity.")
-
-    print()
-    print("  Complexity Summary:")
-    print(f"  {'Linear Search':<20} O(n)  — scales with dataset size")
-    print(f"  {'Dictionary Lookup':<20} O(1)  — constant regardless of size")
+def print_report(results: dict) -> None:
+    """Pretty-print the benchmark results."""
     print("=" * 60)
+    print("Linear Search vs Dictionary Lookup")
+    print("=" * 60)
+    print(f"Records in dataset: {results['records_in_dataset']:,}")
+    print(f"Lookups performed: {results['num_lookups']:,}")
+    print()
+    print(f"Linear search total: {results['linear_total_seconds']:.6f} s")
+    print(f"Dict lookup total: {results['dict_total_seconds']:.6f} s")
+    print()
+    print(f"Linear avg per lookup: {results['linear_avg_microseconds']:.3f} µs")
+    print(f"Dict avg per lookup: {results['dict_avg_microseconds']:.3f} µs")
+    print()
+    print(f"Dict lookup was {results['speedup_factor']:.1f}x faster")
+    print("=" * 60)
+ 
+ 
+def print_scaling_table(transactions: list[dict]) -> None:
+    """Run the same benchmark at multiple dataset sizes and print a comparison table."""
+    sizes = [20, 100, 500, 1000, len(transactions)]
+    # Drop duplicates and sort so the table reads cleanly even when the
+    # dataset is exactly one of the canonical sizes.
+    sizes = sorted(set(s for s in sizes if s <= len(transactions)))
+ 
+    print("\n" + "=" * 78)
+    print("Scaling comparison — same lookups, varying dataset size")
+    print("=" * 78)
+    print(f"{'Dataset size':>14} | {'Linear (µs/op)':>16} | {'Dict (µs/op)':>14} | {'Speedup':>10}")
+    print("-" * 78)
+ 
+    for size in sizes:
+        subset = transactions[:size]
+    
+        results = run_benchmark(subset, num_lookups=1000)
+        print(
+            f"{size:>14,} | "
+            f"{results['linear_avg_microseconds']:>16.3f} | "
+            f"{results['dict_avg_microseconds']:>14.3f} | "
+            f"{results['speedup_factor']:>9.1f}x"
+        )
+    print("=" * 78)
 
-
-# ══════════════════════════════════════════════════════════════════════════════
 if __name__ == "__main__":
-    run_benchmark(runs=1000)
+    xml_path = Path(__file__).parent.parent / "data" / "modified_sms_v2.xml"
+    if not xml_path.exists():
+        # Fall back to the path used in development
+        xml_path = Path("/mnt/user-data/uploads/modified_sms_v2.xml")
+ 
+    print(f"Loading transactions from {xml_path}...")
+    transactions = parse_sms_xml(xml_path)
+    print(f"Loaded {len(transactions)} records\n")
+ 
+    # Fix the seed so the random ids are reproducible
+    random.seed(42)
+ 
+    # Headline benchmark against the full dataset
+    results = run_benchmark(transactions, num_lookups=1000)
+    print_report(results)
+ 
+    # Scaling table shows O(n) vs O(1) and explicitly covers the 20-record
+    # minimum required by the assignment brief.
+    print_scaling_table(transactions)
