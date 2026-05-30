@@ -1,6 +1,123 @@
 # Momo-SMS-API
 
-Scrum Board: [Scrum Board](https://aluteam-6.atlassian.net/jira/software/projects/SCRUM/boards/1?atlOrigin=eyJpIjoiZDBkNDVlMmU5ZDk4NDAxY2EzMTU3ZmRmZWE5YTdjY2UiLCJwIjoiaiJ9)
+## MoMo SMS API — Week 3
+
+A REST API for managing MoMo SMS transaction data, built on Python's standard-library `http.server`. Includes Basic Authentication, in-memory CRUD endpoints, an XML parser, and a DSA comparison between linear search and dictionary lookup.
+
+## Scrum board
+
+Tasks tracked on [Team Astro Jira](https://aluteam-6.atlassian.net/jira/software/projects/SCRUM/boards/1?atlOrigin=eyJpIjoiN2YyYjdiY2JmNTBlNDI2ZDlkOWYzOTdhYzk1MjEwODQiLCJwIjoiaiJ9).
+
+## Task Sheet
+
+Task Sheet in Excel [Team Atro Sheet](https://docs.google.com/spreadsheets/d/1KM57EwXgdUIjaITl2LJDZ698i8mUo3kLCOP4R7gL0AQ/edit?usp=sharing)
+
+
+## Quick start
+
+```bash
+# 1. Clone the repo and enter it
+git clone https://github.com/n-elie7/momo-sms
+cd momo-sms
+
+# 2. Make sure Python 3.10+ is installed
+python3 --version
+
+# 3. (Optional) Place the SMS XML at data/modified_sms_v2.xml
+#    The server will look there first.
+
+# 4. Start the API
+python3 api/server.py
+
+# Server prints:
+#   Loading transactions from data/modified_sms_v2.xml...
+#   Loaded 1691 transactions into memory
+#   MoMo API running at http://localhost:8080
+```
+
+No `pip install` is required — everything uses the Python standard library.
+
+## Trying the API
+
+In a second terminal:
+
+```bash
+# List all
+curl -u admin:momo2026 http://localhost:8080/transactions
+
+# Get one
+curl -u admin:momo2026 http://localhost:8080/transactions/1
+
+# Create
+curl -u admin:momo2026 -X POST http://localhost:8080/transactions \
+  -H "Content-Type: application/json" \
+  -d '{"body":"Test transaction","amount":500,"category":"PAYMENT_CODE"}'
+
+# Update
+curl -u admin:momo2026 -X PUT http://localhost:8080/transactions/1 \
+  -H "Content-Type: application/json" \
+  -d '{"amount":9999}'
+
+# Delete
+curl -u admin:momo2026 -X DELETE http://localhost:8080/transactions/1
+```
+
+Without credentials or with wrong credentials, every endpoint returns **401 Unauthorized**.
+
+Full endpoint documentation is in [`docs/api_docs.md`](docs/api_docs.md).
+
+## Running the DSA benchmark
+
+```bash
+python3 dsa/search_comparison.py
+```
+
+Compares linear search against dictionary lookup over 1,000 random ID lookups on the full 1,691-record dataset. Sample output shows the dict is roughly 250× faster. Reflection and explanation are in [`docs/report.md`](docs/report.md).
+
+## Project layout
+
+```
+momo-api/
+├── api/
+│   ├── server.py              ← HTTP server + routing
+│   ├── auth.py                ← Basic Auth check + decoding
+│   └── store.py               ← in-memory transaction store (CRUD)
+├── dsa/
+│   ├── parse_xml.py           ← XML → list of dicts
+|    ├── suggest_algorithm
+│   └── search_comparison.py   ← linear vs dict benchmark
+├── data/
+│   └── modified_sms_v2.xml    ← source SMS records (1,691)
+├── docs/
+│   ├── api_docs.md            ← endpoint reference
+│   ├── report.md              ← project report (convert to PDF)
+│   └── ai_usage_log.md        ← AI use disclosure
+├── screenshots/               ← curl/httpie test screenshots
+└── README.md
+```
+
+## Test credentials
+
+| Username | Password |
+|----------|----------|
+| admin    | momo2026 |
+| kaliza   | team_astro_2026 |
+| elie     | team_astro_2026 |
+| suwafa   | team_astro_2026 |
+
+These are hard-coded in `api/auth.py` and intended for assignment grading only.
+
+## Team
+
+| Name | Role | Key contributions |
+|------|------|-------------------|
+| Niyubwayo Elie | Team lead — API & auth | `api/server.py`, `api/auth.py`, endpoint integration, project structure |
+| Suwafa Iradukunda | DSA & testing | `dsa/parse_xml.py`, `dsa/search_comparison.py`, curl test screenshots |
+| Kaliza Sabrina | Storage & docs | `api/store.py`, `docs/api_docs.md`, `docs/report.md`, `dsa/suggest_algorithm.md`, README |
+
+*Each member's specific commits are visible in the GitHub log.*
+
+
 
 ## Overview
 
@@ -72,3 +189,4 @@ Foreign keys are configured with deliberate ON DELETE policies: deleting a trans
 ### JSON representation
 
 The JSON examples in `examples/json_schemas.json` mirror this relational structure but flatten it for API consumers. Instead of returning foreign key integers, related data is nested: a transaction object embeds its full category, its participants as an array of `{role, user}` pairs, and optionally its source SMS and processing logs. This means a client gets the entire context of a transaction in a single response without joining or making follow-up requests, while the underlying database keeps the normalized structure that makes storage and analysis efficient.
+
