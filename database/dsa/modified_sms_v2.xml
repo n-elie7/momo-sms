@@ -18,7 +18,7 @@ from collections import Counter
 # ──────────────────────────────────────────────────────────────────────────────
 # CATEGORY DETECTION
 # Each tuple is (keyword_list, category_label).
-# The first matching rule wins, so order matters  put specific rules first.
+# The first matching rule wins, so order matters — put specific rules first.
 # ──────────────────────────────────────────────────────────────────────────────
 CATEGORY_RULES = [
     (["received",   "you have received"],          "Incoming Money"),
